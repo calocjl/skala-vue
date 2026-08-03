@@ -1,7 +1,9 @@
 <script setup>
-import WeatherMockup from './components/practices/assignment/WeatherMockup.vue'
+import WeatherParent from './components/practices/assignment/component/WeatherParent.vue'
 </script>
 
 <template>
-  <WeatherMockup />
+  <div style="padding: 20px; max-width: 900px; margin: 0 auto;">
+    <WeatherParent />
+  </div>
 </template>

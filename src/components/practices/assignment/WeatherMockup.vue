@@ -176,4 +176,4 @@ const showDetail = (cityName, status, e) => {
   text-align: center;
   font-weight: bold;
 }
-</style>
+</style>s
