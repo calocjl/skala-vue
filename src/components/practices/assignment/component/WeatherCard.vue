@@ -1,11 +1,24 @@
 <script setup>
+import { computed } from 'vue'
+import { useConfigStore } from '@/stores/configStore'
+
 // 선택된 도시 객체를 전달받아 표시 (props)
-defineProps({
+const props = defineProps({
   city: { type: Object, required: true },
 })
 
 // 카드를 선택하는 것(select-card 이벤트)과 상세보기(click-detail 이벤트)를 부모에게 전달 (emits)
 const emit = defineEmits(['select-card', 'click-detail'])
+
+const configStore = useConfigStore()
+
+const displayTemp = computed(() => {
+  const rawTemp = props.city.temp
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+  return rawTemp
+})
 </script>
 
 <template>
@@ -15,11 +28,9 @@ const emit = defineEmits(['select-card', 'click-detail'])
 
     <p class="city-name">{{ city.name }}</p>
     <p class="city-status">{{ city.status }}</p>
-    <p class="city-temp">{{ city.temp }}°C</p>
+    <p class="city-temp">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
 
-    <button class="detail-btn" @click.stop="emit('click-detail', city)">
-      자세히 보기
-    </button>
+    <button class="detail-btn" @click.stop="emit('click-detail', city)">자세히 보기</button>
   </div>
 </template>
 
@@ -32,7 +43,9 @@ const emit = defineEmits(['select-card', 'click-detail'])
   padding: 18px;
   margin-bottom: 12px;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 .weather-card:hover {
   transform: translateY(-2px);
