@@ -24,7 +24,7 @@ const router = useRouter()
 h2 {
   font-size: 40px;
   color: #6c4ab6;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 button {
   margin-top: 16px;
