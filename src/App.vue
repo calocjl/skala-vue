@@ -63,9 +63,20 @@ import UnitToggler from './components/practices/assignment/UnitToggler.vue'
   right: 0;
 }
 @media (max-width: 600px) {
+  .nav-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nav-links {
+    padding: 6px;
+  }
   .nav-item {
     padding: 8px 14px;
     font-size: 12px;
+  }
+  .unit-toggler-position {
+    position: static;   /* absolute 해제 → 자연스럽게 아래로 배치 */
+    margin-top: 4px;
   }
   .app-wrapper {
     padding: 12px;
