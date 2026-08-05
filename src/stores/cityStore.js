@@ -26,6 +26,7 @@ export const useCityStore = defineStore('city', () => {
   const favoriteCities = ref(loadInitial())
   const isSearching = ref(false)
   const searchError = ref('')
+  const selectedCityId = ref(null)
 
   const saveToStorage = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(favoriteCities.value))
@@ -41,6 +42,7 @@ export const useCityStore = defineStore('city', () => {
       })
       return response.data // [{ name, lat, lon, country, local_names... }, ...]
     } catch (error) {
+      console.error('도시 검색 실패:', error)
       searchError.value = '도시를 찾는 중 오류가 발생했습니다.'
       return []
     } finally {
@@ -69,12 +71,19 @@ export const useCityStore = defineStore('city', () => {
     favoriteCities.value = favoriteCities.value.filter((c) => c.id !== id)
     saveToStorage()
   }
-  const selectedCityId = ref(null)
-const setSelectedCity = (id) => {
-  selectedCityId.value = id
-}
 
-  return { favoriteCities, isSearching, searchError, searchCity, addCity, removeCity, selectedCityId, 
-  setSelectedCity, }
+  const setSelectedCity = (id) => {
+    selectedCityId.value = id
+  }
+
+  return {
+    favoriteCities,
+    isSearching,
+    searchError,
+    searchCity,
+    addCity,
+    removeCity,
+    selectedCityId,
+    setSelectedCity,
+  }
 })
-

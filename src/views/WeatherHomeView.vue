@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCityStore } from '@/stores/cityStore'
 import axios from 'axios'
@@ -13,16 +13,22 @@ const router = useRouter()
 const cityStore = useCityStore()
 const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY
 
+// 날씨 목록(배열)은 API에서 통째로 재할당되므로 ref 유지
 const weatherList = ref([])
 const isLoading = ref(false)
-const searchQuery = ref('')
-const newCityInput = ref('')
-const selectedCityInfo = ref('카드를 클릭하거나 검색해 보세요.')
-const selectedCityName = ref('')
 
-const isAscending = ref(true)
+// 서로 관련된 UI 상태값들을 하나의 reactive 객체로 묶음
+// (통째로 재할당하지 않고, 속성 하나씩만 바뀌는 값들이라 reactive에 적합)
+const uiState = reactive({
+  searchQuery: '',
+  newCityInput: '',
+  selectedCityInfo: '카드를 클릭하거나 검색해 보세요.',
+  selectedCityName: '',
+  isAscending: true,
+})
+
 const toggleSort = () => {
-  isAscending.value = !isAscending.value
+  uiState.isAscending = !uiState.isAscending
 }
 
 const fetchFavoritesWeather = async () => {
@@ -61,7 +67,7 @@ const handleAutocompleteQuery = async (queryString, callback) => {
 
 const handleSelectAutocomplete = async (item) => {
   cityStore.addCity(item.raw)
-  newCityInput.value = ''
+  uiState.newCityInput = ''
   await fetchFavoritesWeather()
 }
 
@@ -72,11 +78,13 @@ const handleRemoveCity = async (id) => {
 
 // 정렬 + 검색 + 선택된 도시를 맨 위로 고정
 const filteredWeatherList = computed(() => {
-  const base = weatherList.value.filter((city) => city.name.includes(searchQuery.value))
-  const sorted = [...base].sort((a, b) => (isAscending.value ? a.temp - b.temp : b.temp - a.temp))
+  const base = weatherList.value.filter((city) => city.name.includes(uiState.searchQuery))
+  const sorted = [...base].sort((a, b) =>
+    uiState.isAscending ? a.temp - b.temp : b.temp - a.temp,
+  )
 
-  if (selectedCityName.value) {
-    const selectedIndex = sorted.findIndex((c) => c.name === selectedCityName.value)
+  if (uiState.selectedCityName) {
+    const selectedIndex = sorted.findIndex((c) => c.name === uiState.selectedCityName)
     if (selectedIndex > -1) {
       const [selectedCity] = sorted.splice(selectedIndex, 1)
       sorted.unshift(selectedCity)
@@ -91,8 +99,8 @@ const handleSelectCard = (cityName) => {
   const found = weatherList.value.find((c) => c.name === cityName)
   if (!found) return
 
-  selectedCityInfo.value = `[${cityName}] 이(가) 선택되었습니다.`
-  selectedCityName.value = cityName
+  uiState.selectedCityInfo = `[${cityName}] 이(가) 선택되었습니다.`
+  uiState.selectedCityName = cityName
   cityStore.setSelectedCity(found.id)
 }
 
@@ -101,13 +109,13 @@ const handleClickDetail = (city) => {
 }
 
 const mascotTarget = computed(() => {
-  const found = weatherList.value.find((c) => c.name === selectedCityName.value)
+  const found = weatherList.value.find((c) => c.name === uiState.selectedCityName)
   return found || weatherList.value[0] || { status: '', temp: 20 }
 })
 
 // 오른쪽 사이드바 기준 도시: 선택된 도시 → 없으면 서울 → 없으면 즐겨찾기 첫 번째
 const selectedCityDisplay = computed(() => {
-  const found = cityStore.favoriteCities.find((c) => c.name === selectedCityName.value)
+  const found = cityStore.favoriteCities.find((c) => c.name === uiState.selectedCityName)
   if (found) return found
   return (
     cityStore.favoriteCities.find((c) => c.name === '서울') ||
@@ -149,11 +157,11 @@ const formattedTime = computed(() => {
     <!-- 왼쪽 사이드바 -->
     <div class="sidebar">
       <p class="selected-city-badge">
-        <span v-if="selectedCityName">✅ {{ selectedCityName }} 선택 중</span>
+        <span v-if="uiState.selectedCityName">✅ {{ uiState.selectedCityName }} 선택 중</span>
         <span v-else>📍 도시를 선택해보세요</span>
       </p>
       <WeatherMascot :status="mascotTarget.status" :temp="mascotTarget.temp" />
-      <KoreaMapMini :selected-city-name="selectedCityName" />
+      <KoreaMapMini :selected-city-name="uiState.selectedCityName" />
     </div>
 
     <!-- 메인 -->
@@ -162,7 +170,7 @@ const formattedTime = computed(() => {
 
       <div class="add-city-box">
         <el-autocomplete
-          v-model="newCityInput"
+          v-model="uiState.newCityInput"
           class="autocomplete-input"
           placeholder="새 도시 검색 (예: Tokyo, Paris, 대구)"
           :fetch-suggestions="handleAutocompleteQuery"
@@ -171,12 +179,12 @@ const formattedTime = computed(() => {
       </div>
 
       <div class="search-box">
-        <input v-model="searchQuery" placeholder="즐겨찾기 안에서 검색" />
+        <input v-model="uiState.searchQuery" placeholder="즐겨찾기 안에서 검색" />
       </div>
 
       <div class="sort-toggle">
         <button @click="toggleSort">
-          🌡️ 온도 {{ isAscending ? '낮은순' : '높은순' }} 정렬 중 (클릭해서 전환)
+          🌡️ 온도 {{ uiState.isAscending ? '낮은순' : '높은순' }} 정렬 중 (클릭해서 전환)
         </button>
       </div>
 
@@ -194,14 +202,14 @@ const formattedTime = computed(() => {
         <el-empty v-else description="등록된 도시가 없습니다. 위에서 새 도시를 추가해보세요." />
       </el-scrollbar>
 
-      <div class="status-bar">{{ selectedCityInfo }}</div>
+      <div class="status-bar">{{ uiState.selectedCityInfo }}</div>
     </div>
 
     <!-- 오른쪽 사이드바 -->
     <div class="sidebar">
       <div class="sidebar-header">
         <p class="sidebar-city-label">
-          <span v-if="selectedCityName">✅ {{ selectedCityDisplay.name }} 선택됨</span>
+          <span v-if="uiState.selectedCityName">✅ {{ selectedCityDisplay.name }} 선택됨</span>
           <span v-else>📍 {{ selectedCityDisplay.name }} (기본값)</span>
         </p>
         <p class="sidebar-datetime">{{ formattedDate }} · {{ formattedTime }}</p>

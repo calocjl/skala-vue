@@ -124,8 +124,6 @@ const pickMenuByWeather = (status, temp) => {
 
 onMounted(async () => {
   const targetId = cityStore.selectedCityId
-  console.log('선택된 도시 ID:', targetId)
-  console.log('즐겨찾기 목록 ID들:', cityStore.favoriteCities.map((c) => c.id))
   const target =
     cityStore.favoriteCities.find((c) => c.id === targetId) || cityStore.favoriteCities[0]
 
