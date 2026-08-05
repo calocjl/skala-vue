@@ -1,14 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useConfigStore } from '@/stores/configStore'
+import { getWeatherTheme } from '@/utils/weatherTheme'
 
-// 선택된 도시 객체를 전달받아 표시 (props)
 const props = defineProps({
   city: { type: Object, required: true },
 })
 
-// 카드를 선택하는 것(select-card 이벤트)과 상세보기(click-detail 이벤트)를 부모에게 전달 (emits)
-const emit = defineEmits(['select-card', 'click-detail'])
+const emit = defineEmits(['select-card', 'click-detail', 'remove-city'])
 
 const configStore = useConfigStore()
 
@@ -19,16 +18,24 @@ const displayTemp = computed(() => {
   }
   return rawTemp
 })
+
+const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.city.temp))
 </script>
 
 <template>
-  <div class="weather-card" @click="emit('select-card', city.name)">
-    <span v-if="city.temp >= 25" class="badge hot">🔥 더움</span>
-    <span v-else class="badge cool">❄️ 선선</span>
+  <div
+    class="weather-card"
+    :style="{ background: weatherTheme.gradient }"
+    @click="emit('select-card', city.name)"
+  >
+    <el-tooltip content="즐겨찾기에서 삭제" placement="top">
+      <button class="remove-btn" @click.stop="emit('remove-city', city.id)">✕</button>
+    </el-tooltip>
 
+    <div class="card-icon">{{ weatherTheme.icon }}</div>
     <p class="city-name">{{ city.name }}</p>
-    <p class="city-status">{{ city.status }}</p>
-    <p class="city-temp">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
+    <p class="city-temp">{{ displayTemp }}°{{ configStore.unit === 'celsius' ? 'C' : 'F' }}</p>
+    <span class="status-badge">{{ city.status }}</span>
 
     <button class="detail-btn" @click.stop="emit('click-detail', city)">자세히 보기</button>
   </div>
@@ -37,64 +44,72 @@ const displayTemp = computed(() => {
 <style scoped>
 .weather-card {
   position: relative;
-  background: #faf7ff;
-  border: 1px solid #ece2fa;
-  border-radius: 20px;
-  padding: 18px;
-  margin-bottom: 12px;
+  border-radius: 24px;
+  padding: 22px;
+  margin-bottom: 14px;
   cursor: pointer;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s;
+  color: white;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 .weather-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(108, 74, 182, 0.15);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+.remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+.remove-btn:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.card-icon {
+  font-size: 40px;
+  margin-bottom: 4px;
 }
 .city-name {
-  font-size: 19px;
-  font-weight: bold;
-  color: #4b2e83;
-  margin: 6px 0 0;
-}
-.city-status {
-  color: #8a6fc7;
-  margin: 2px 0;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 0;
 }
 .city-temp {
-  font-size: 24px;
-  font-weight: bold;
-  color: #6c4ab6;
-  margin: 4px 0 12px;
+  font-size: 36px;
+  font-weight: 800;
+  margin: 2px 0;
+  letter-spacing: -1px;
 }
-.badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+.status-badge {
+  display: inline-block;
   padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: bold;
-}
-.badge.hot {
-  background: #ffe4d6;
-  color: #d2691e;
-}
-.badge.cool {
-  background: #dff3ee;
-  color: #2f8f7a;
+  font-size: 13px;
+  margin-bottom: 16px;
 }
 .detail-btn {
   width: 100%;
-  padding: 9px;
+  padding: 10px;
   border: none;
   border-radius: 14px;
-  background: #6c4ab6;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
   color: white;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s;
 }
 .detail-btn:hover {
-  background: #573b96;
+  background: rgba(255, 255, 255, 0.35);
 }
 </style>

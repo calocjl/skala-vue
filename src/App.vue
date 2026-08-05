@@ -16,7 +16,6 @@ import UnitToggler from './components/practices/assignment/UnitToggler.vue'
 
 <style scoped>
 .app-wrapper {
-  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -25,6 +24,9 @@ nav {
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 nav a {
   text-decoration: none;
