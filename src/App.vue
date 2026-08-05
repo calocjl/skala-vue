@@ -62,4 +62,13 @@ import UnitToggler from './components/practices/assignment/UnitToggler.vue'
   position: absolute;
   right: 0;
 }
+@media (max-width: 600px) {
+  .nav-item {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .app-wrapper {
+    padding: 12px;
+  }
+}
 </style>

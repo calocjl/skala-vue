@@ -315,4 +315,20 @@ h2 {
   text-align: center;
   font-weight: bold;
 }
+/* 모바일 반응형: 화면 폭이 900px 이하면 세로로 쌓기 */
+@media (max-width: 900px) {
+  .page-layout {
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+  }
+  .weather-parent {
+    width: 100%;
+    max-width: 480px;
+  }
+  .sidebar {
+    width: 100%;
+    max-width: 480px;
+  }
+}
 </style>
