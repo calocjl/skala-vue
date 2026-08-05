@@ -70,14 +70,30 @@ const handleRemoveCity = async (id) => {
   await fetchFavoritesWeather()
 }
 
+// 정렬 + 검색 + 선택된 도시를 맨 위로 고정
 const filteredWeatherList = computed(() => {
   const base = weatherList.value.filter((city) => city.name.includes(searchQuery.value))
-  return [...base].sort((a, b) => (isAscending.value ? a.temp - b.temp : b.temp - a.temp))
+  const sorted = [...base].sort((a, b) => (isAscending.value ? a.temp - b.temp : b.temp - a.temp))
+
+  if (selectedCityName.value) {
+    const selectedIndex = sorted.findIndex((c) => c.name === selectedCityName.value)
+    if (selectedIndex > -1) {
+      const [selectedCity] = sorted.splice(selectedIndex, 1)
+      sorted.unshift(selectedCity)
+    }
+  }
+
+  return sorted
 })
 
+// "선택하기" 버튼 클릭 시 실행
 const handleSelectCard = (cityName) => {
+  const found = weatherList.value.find((c) => c.name === cityName)
+  if (!found) return
+
   selectedCityInfo.value = `[${cityName}] 이(가) 선택되었습니다.`
   selectedCityName.value = cityName
+  cityStore.setSelectedCity(found.id)
 }
 
 const handleClickDetail = (city) => {
@@ -132,6 +148,10 @@ const formattedTime = computed(() => {
   <div class="page-layout">
     <!-- 왼쪽 사이드바 -->
     <div class="sidebar">
+      <p class="selected-city-badge">
+        <span v-if="selectedCityName">✅ {{ selectedCityName }} 선택 중</span>
+        <span v-else>📍 도시를 선택해보세요</span>
+      </p>
       <WeatherMascot :status="mascotTarget.status" :temp="mascotTarget.temp" />
       <KoreaMapMini :selected-city-name="selectedCityName" />
     </div>
@@ -180,7 +200,10 @@ const formattedTime = computed(() => {
     <!-- 오른쪽 사이드바 -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <p class="sidebar-city-label">📍 {{ selectedCityDisplay.name }} 기준</p>
+        <p class="sidebar-city-label">
+          <span v-if="selectedCityName">✅ {{ selectedCityDisplay.name }} 선택됨</span>
+          <span v-else>📍 {{ selectedCityDisplay.name }} (기본값)</span>
+        </p>
         <p class="sidebar-datetime">{{ formattedDate }} · {{ formattedTime }}</p>
       </div>
       <HourlyForecast :lat="selectedCityDisplay.lat" :lon="selectedCityDisplay.lon" />
@@ -212,6 +235,16 @@ const formattedTime = computed(() => {
 .sidebar {
   width: 240px;
   flex-shrink: 0;
+}
+.selected-city-badge {
+  text-align: center;
+  background: #ede4fb;
+  color: #6c4ab6;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 999px;
+  margin-bottom: 12px;
 }
 .sidebar-header {
   text-align: center;

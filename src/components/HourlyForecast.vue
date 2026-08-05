@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 
 const props = defineProps({
@@ -30,20 +30,54 @@ const fetchHourly = async () => {
 }
 
 watch(() => [props.lat, props.lon], fetchHourly, { immediate: true })
+
+// 미니 그래프용 좌표 계산 (SVG viewBox 0~200 x 0~50 기준)
+const graphPoints = computed(() => {
+  if (hourlyList.value.length === 0) return ''
+  const temps = hourlyList.value.map((h) => h.temp)
+  const min = Math.min(...temps)
+  const max = Math.max(...temps)
+  const range = max - min || 1
+
+  return hourlyList.value
+    .map((h, i) => {
+      const x = (i / (hourlyList.value.length - 1)) * 200
+      const y = 45 - ((h.temp - min) / range) * 35
+      return `${x},${y}`
+    })
+    .join(' ')
+})
 </script>
 
 <template>
   <div class="forecast-box">
     <p class="forecast-title">⏰ 오늘 시간별 예보</p>
     <el-skeleton v-if="isLoading" :rows="3" animated />
-    <el-scrollbar v-else height="80px">
-      <div class="hourly-row">
-        <div v-for="hour in hourlyList" :key="hour.time" class="hourly-item">
-          <span class="hour-label">{{ hour.time }}</span>
-          <span class="hour-temp">{{ hour.temp }}°</span>
+    <template v-else>
+      <el-scrollbar height="80px">
+        <div class="hourly-row">
+          <div v-for="hour in hourlyList" :key="hour.time" class="hourly-item">
+            <span class="hour-label">{{ hour.time }}</span>
+            <span class="hour-temp">{{ hour.temp }}°</span>
+          </div>
         </div>
+      </el-scrollbar>
+
+      <div class="graph-box">
+        <svg viewBox="0 0 200 50" class="temp-graph" preserveAspectRatio="none">
+          <polyline :points="graphPoints" fill="none" stroke="#a78bda" stroke-width="2" />
+          <circle
+            v-for="(h, i) in hourlyList"
+            :key="'dot-' + h.time"
+            :cx="(i / (hourlyList.length - 1)) * 200"
+            :cy="45 - ((h.temp - Math.min(...hourlyList.map((x) => x.temp))) / ((Math.max(...hourlyList.map((x) => x.temp)) - Math.min(...hourlyList.map((x) => x.temp))) || 1)) * 35"
+            r="2.5"
+            fill="#6c4ab6"
+          />
+        </svg>
+        <p class="graph-caption">기온 변화 추이</p>
       </div>
-    </el-scrollbar>
+    </template>
   </div>
 </template>
 
@@ -78,5 +112,20 @@ watch(() => [props.lat, props.lon], fetchHourly, { immediate: true })
 }
 .hour-temp {
   font-weight: bold;
+}
+.graph-box {
+  margin-top: 14px;
+  border-top: 1px solid #f0eafa;
+  padding-top: 10px;
+}
+.temp-graph {
+  width: 100%;
+  height: 50px;
+}
+.graph-caption {
+  text-align: center;
+  font-size: 11px;
+  color: #b7a4e0;
+  margin: 4px 0 0;
 }
 </style>

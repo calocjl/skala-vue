@@ -69,6 +69,12 @@ export const useCityStore = defineStore('city', () => {
     favoriteCities.value = favoriteCities.value.filter((c) => c.id !== id)
     saveToStorage()
   }
+  const selectedCityId = ref(null)
+const setSelectedCity = (id) => {
+  selectedCityId.value = id
+}
 
-  return { favoriteCities, isSearching, searchError, searchCity, addCity, removeCity }
+  return { favoriteCities, isSearching, searchError, searchCity, addCity, removeCity, selectedCityId, 
+  setSelectedCity, }
 })
+

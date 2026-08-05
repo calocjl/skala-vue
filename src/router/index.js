@@ -13,6 +13,7 @@ const routes = [
     name: 'notFound',
     component: () => import('../views/NotFoundView.vue'),
   },
+  { path: '/menu', name: 'menu', component: () => import('../views/MenuRecommendView.vue') },
 ]
 
 const router = createRouter({
@@ -21,3 +22,5 @@ const router = createRouter({
 })
 
 export default router
+
+

@@ -20,16 +20,20 @@ const displayTemp = computed(() => {
 })
 
 const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.city.temp))
+
+const handleSelectClick = () => {
+  emit('select-card', props.city.name)
+}
+
+const handleDetailClick = () => {
+  emit('click-detail', props.city)
+}
 </script>
 
 <template>
-  <div
-    class="weather-card"
-    :style="{ background: weatherTheme.gradient }"
-    @click="emit('select-card', city.name)"
-  >
+  <div class="weather-card" :style="{ background: weatherTheme.gradient }">
     <el-tooltip content="즐겨찾기에서 삭제" placement="top">
-      <button class="remove-btn" @click.stop="emit('remove-city', city.id)">✕</button>
+      <button class="remove-btn" @click="emit('remove-city', city.id)">✕</button>
     </el-tooltip>
 
     <div class="card-icon">{{ weatherTheme.icon }}</div>
@@ -37,7 +41,10 @@ const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.cit
     <p class="city-temp">{{ displayTemp }}°{{ configStore.unit === 'celsius' ? 'C' : 'F' }}</p>
     <span class="status-badge">{{ city.status }}</span>
 
-    <button class="detail-btn" @click.stop="emit('click-detail', city)">자세히 보기</button>
+    <div class="button-row">
+      <button class="select-btn" @click="handleSelectClick">✅ 선택하기</button>
+      <button class="detail-btn" @click="handleDetailClick">자세히 보기</button>
+    </div>
   </div>
 </template>
 
@@ -47,15 +54,9 @@ const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.cit
   border-radius: 24px;
   padding: 22px;
   margin-bottom: 14px;
-  cursor: pointer;
   color: white;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-.weather-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 .remove-btn {
   position: absolute;
@@ -97,8 +98,13 @@ const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.cit
   font-size: 13px;
   margin-bottom: 16px;
 }
+.button-row {
+  display: flex;
+  gap: 8px;
+}
+.select-btn,
 .detail-btn {
-  width: 100%;
+  flex: 1;
   padding: 10px;
   border: none;
   border-radius: 14px;
@@ -108,7 +114,9 @@ const weatherTheme = computed(() => getWeatherTheme(props.city.status, props.cit
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 13px;
 }
+.select-btn:hover,
 .detail-btn:hover {
   background: rgba(255, 255, 255, 0.35);
 }
